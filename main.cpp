@@ -28,13 +28,35 @@ std::string SlaSimHash(std::string& input) {
         }
     }
 
-    int average = 0;
-    double log2 = 0;
+    long long average = 0;
     for (int n : numbers) {
         average += n;
     }
-    log2 = std::log2(average);
     average /= numbers.size();
+
+    
+
+    std::vector<int> xor_results={binary[0], binary[1], binary[2], binary[3]};
+    for (int i = 4; i < binary.size(); i++) {
+        std::vector<int> temp;
+        for (int j = 0; j < xor_results.size(); j++) {
+            temp.push_back(xor_results[j] ^ binary[i]);
+        }
+        xor_results = temp;
+    }
+
+    long long xor_numerical_value = 0;
+    for (int i = 0; i < xor_results.size(); i++) {
+        xor_numerical_value += xor_results[i] << (xor_results.size() - 1 - i);
+    }
+
+    long long offset = 1;
+    for (int i = 0; i < xor_numerical_value; i++) {
+        offset *= average;
+        offset %= (1LL << 32);
+    }
+
+    offset = log2(offset);
 
     for (int i = 0; i < 8; i++) {
         int zero_count = 0;
@@ -49,14 +71,18 @@ std::string SlaSimHash(std::string& input) {
         }
 
         long long partial_numerical_hash=1;
-        for (int j = 0; j < one_count+log2; j++) {
-            partial_numerical_hash *= (zero_count + average);
+        for (int j = 0; j < one_count+offset + 10; j++) {
+            partial_numerical_hash *= (zero_count + average + 10 + partial_numerical_hash%10);
+            partial_numerical_hash % (1LL << 32) == 0 ? partial_numerical_hash -= 1 : partial_numerical_hash;
             partial_numerical_hash %= (1LL << 32);
         }
+
+        
 
         std::stringstream ss;
         ss << std::hex << partial_numerical_hash;
         output += ss.str();
+        std::cout<<output.size()<<std::endl;
     }
 
     return output;
@@ -64,7 +90,7 @@ std::string SlaSimHash(std::string& input) {
 
 
 int main() {
-    std::string a = "Hello world";
+    std::string a = "hello world";
     std::cout<<SlaSimHash(a);
     return 0;
 }
