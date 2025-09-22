@@ -4,6 +4,7 @@
 #include <bitset>
 #include <cmath>
 #include <sstream>
+#include <fstream>
 
 std::string SlaSimHash(std::string& input) {
     std::vector<int> binary;
@@ -82,15 +83,44 @@ std::string SlaSimHash(std::string& input) {
         std::stringstream ss;
         ss << std::hex << partial_numerical_hash;
         output += ss.str();
-        std::cout<<output.size()<<std::endl;
     }
 
     return output;
 }
 
+void ivestis(std::istream& in, std::string& a) {
+    std::getline(in, a);
+}
 
 int main() {
-    std::string a = "hello world";
-    std::cout<<SlaSimHash(a);
+    std::string a;
+    std::cout<<"Sveiki. Pasirinkite ivesties buda:\n1. Ivesti is failo\n2. Ivesti per konsole\n3. Baigti darba\n";
+    int pasirinkimas=0;
+    std::cin>>pasirinkimas;
+    while (pasirinkimas != 3){
+        if (pasirinkimas == 1) {
+            std::cout << "Iveskite failo pavadinima: ";
+            std::string filename;
+            std::cin >> filename;
+            std::ifstream file(filename);
+            if (!file) {
+                std::cerr << "Klaida atidarant faila!" << std::endl;
+                return 1;
+            }
+            ivestis(file, a);
+            file.close();
+        } else if (pasirinkimas == 2) {
+            std::cout << "Iveskite teksta: ";
+            std::cin.ignore();
+            ivestis(std::cin, a);
+        } else {
+            std::cerr << "Neteisingas pasirinkimas!" << std::endl;
+        
+            return 1;
+        }
+        std::cout<<SlaSimHash(a)<<std::endl;
+        std::cout<<"Pasirinkite ivesties buda:\n1. Ivesti is failo\n2. Ivesti per konsole\n3. Baigti darba\n";
+        std::cin>>pasirinkimas;
+    }
     return 0;
 }
