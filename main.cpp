@@ -27,7 +27,7 @@ std::string SlaSimHash(std::string& input) {
     for (int i = 0; i < binary.size(); i++) {
         num += 1 << (7 - i%8);
         if (i % 8 == 7) {
-            numbers.push_back(num);
+            numbers.push_back(num*(i/8+1));
             num = 0;
         }
     }
