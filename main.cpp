@@ -5,6 +5,7 @@
 #include <cmath>
 #include <sstream>
 #include <fstream>
+#include <chrono>
 
 std::string SlaSimHash(std::string& input) {
     if (input.empty()) {
@@ -91,16 +92,51 @@ std::string SlaSimHash(std::string& input) {
     return output;
 }
 
-void ivestis(std::istream& in, std::string& a) {
+void base_input(std::istream& in, std::string& a) {
     std::getline(in, a);
+}
+
+void test_input(std::istream& in) {
+    std::string input{};
+    std::string line{};
+    int lineCount{0};
+
+    while (std::getline(in, line)) {
+        input += line + "\n";
+        lineCount++;
+        if (lineCount > 0 && (lineCount & (lineCount - 1)) == 0) {
+            long long average=0;
+            for (int i = 0; i < 50; i++){
+                using Clock = std::chrono::high_resolution_clock;
+                auto start = Clock::now();
+                SlaSimHash(input);
+                auto end = Clock::now();
+                average += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+            }
+            std::cout << "Lines: " << lineCount << " Time: " << average / 50     << " ns\n";
+        }
+    }
+    long long average=0;
+    for (int i = 0; i < 50; i++){
+        using Clock = std::chrono::high_resolution_clock;
+        auto start = Clock::now();
+        SlaSimHash(input);
+        auto end = Clock::now();
+        average += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    }
+    std::cout << "Full file. Time: " << average / 50     << " ns\n";
+}
+
+void collision_input(std::istream& in) {
+    
 }
 
 int main() {
     std::string a;
-    std::cout<<"Sveiki. Pasirinkite ivesties buda:\n1. Ivesti is failo\n2. Ivesti per konsole\n3. Baigti darba\n";
+    std::cout<<"Sveiki. Pasirinkite ivesties buda:\n1. Ivesti is failo\n2. Ivesti per konsole\n3. Testavimas\n4. Baigti darba\n";
     int pasirinkimas=0;
     std::cin>>pasirinkimas;
-    while (pasirinkimas != 3){
+    while (pasirinkimas != 4){
         if (pasirinkimas == 1) {
             std::cout << "Iveskite failo pavadinima: ";
             std::string filename;
@@ -110,19 +146,21 @@ int main() {
                 std::cerr << "Klaida atidarant faila!" << std::endl;
                 return 1;
             }
-            ivestis(file, a);
+            base_input(file, a);
             file.close();
         } else if (pasirinkimas == 2) {
             std::cout << "Iveskite teksta: ";
             std::cin.ignore();
-            ivestis(std::cin, a);
+            base_input(std::cin, a);
+        } else if (pasirinkimas == 3) {
+            std::ifstream file("./tests/konstitucija.txt");
+            test_input(file);
         } else {
             std::cerr << "Neteisingas pasirinkimas!" << std::endl;
-        
             return 1;
         }
         std::cout<<SlaSimHash(a)<<std::endl;
-        std::cout<<"Pasirinkite ivesties buda:\n1. Ivesti is failo\n2. Ivesti per konsole\n3. Baigti darba\n";
+        std::cout<<"Sveiki. Pasirinkite ivesties buda:\n1. Ivesti is failo\n2. Ivesti per konsole\n3. Testavimas\n4. Baigti darba\n";
         std::cin>>pasirinkimas;
     }
     return 0;
