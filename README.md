@@ -42,4 +42,10 @@
 
 ## Testing
 
+### Time testing
+- The test conducted with file `konstitucija.txt` concluded, that increasing the input does not significantly effect the runtime of the hashing algorithm.
+<img width="886" height="523" alt="image" src="https://github.com/user-attachments/assets/cc90237d-5962-4b57-a15e-918dfb7039d3" />
+
+### Collision testing
+- Tests with 100k pairs of strings length 10, 100, 500 and 1000 all did not yield any collisions.
 
