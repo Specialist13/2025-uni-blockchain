@@ -7,6 +7,9 @@
 #include <fstream>
 
 std::string SlaSimHash(std::string& input) {
+    if (input.empty()) {
+        return "";
+    }
     std::vector<int> binary;
     std::string output;
 
@@ -102,7 +105,7 @@ int main() {
             std::cout << "Iveskite failo pavadinima: ";
             std::string filename;
             std::cin >> filename;
-            std::ifstream file(filename);
+            std::ifstream file("./tests/"+filename);
             if (!file) {
                 std::cerr << "Klaida atidarant faila!" << std::endl;
                 return 1;
