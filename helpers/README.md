@@ -28,12 +28,11 @@ helpers::generate_string_pairs(options);
 
 ## Output
 
-Files are written to `input_files/avalanche/` by default:
-- `pair_0_a.txt` and `pair_0_b.txt`
-- `pair_1_a.txt` and `pair_1_b.txt`
-- ...
+A single file `pairs.txt` is written to `input_files/avalanche/` by default.
 
-Each pair contains two strings that differ by exactly one character at a random position.
+- The file contains `2 * pairCount` lines.
+- Each consecutive two lines form a pair: the first line is string A, the second line is string B.
+- Each pair differs by exactly one character at a random position.
 
 ## Options
 
