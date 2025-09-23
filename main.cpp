@@ -6,6 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <chrono>
+#include "helpers/string_pair_generator.h"
 
 std::string SlaSimHash(std::string& input) {
     if (input.empty()) {
@@ -132,7 +133,7 @@ void collision_input() {
     for (auto & file : files) {
         std::ifstream f("./tests/" + file);
         if (!f) {
-            std::cerr << "Klaida atidarant faila!" << std::endl;
+            std::cerr << "Error opening file!" << std::endl;
             return;
         }
         std::string line1, line2;
@@ -150,11 +151,11 @@ void collision_input() {
 
 int main() {
     std::string a;
-    std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Exit\n";
-    int pasirinkimas=0;
-    std::cin>>pasirinkimas;
-    while (pasirinkimas != 5){
-        if (pasirinkimas == 1) {
+    std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Generate string pairs\n6. Exit\n";
+    int choice=0;
+    std::cin>>choice;
+    while (choice != 6){
+        if (choice == 1) {
             std::cout << "Enter file name: ";
             std::string filename;
             std::cin >> filename;
@@ -165,23 +166,27 @@ int main() {
             }
             base_input(file, a);
             file.close();
-        } else if (pasirinkimas == 2) {
+        } else if (choice == 2) {
             std::cout << "Enter text: ";
             std::cin.ignore();
             base_input(std::cin, a);
-        } else if (pasirinkimas == 3) {
+        } else if (choice == 3) {
             std::ifstream file("./tests/konstitucija.txt");
             test_input(file);
         }
-        else if (pasirinkimas == 4) {
+        else if (choice == 4) {
             collision_input();
+        } else if (choice == 5) {
+            std::cout << "Generating 100,000 string pairs of length 10...\n";
+            helpers::generate_string_pairs(100000, 10);
+            std::cout << "String pairs generated in input_files/avalanche/pairs.txt\n";
         } else {
             std::cerr << "Invalid selection!" << std::endl;
             return 1;
         }
         std::cout<<SlaSimHash(a)<<std::endl;
-        std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Exit\n";
-        std::cin>>pasirinkimas;
+        std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Generate string pairs\n6. Exit\n";
+        std::cin>>choice;
     }
     return 0;
 }
