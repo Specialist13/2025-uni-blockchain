@@ -127,40 +127,60 @@ void test_input(std::istream& in) {
     std::cout << "Full file. Time: " << average / 50     << " ns\n";
 }
 
-void collision_input(std::istream& in) {
-    
+void collision_input() {
+    std::string files[4]={"pairs10.txt", "pairs100.txt", "pairs500.txt", "pairs1000.txt"};
+    for (auto & file : files) {
+        std::ifstream f("./tests/" + file);
+        if (!f) {
+            std::cerr << "Klaida atidarant faila!" << std::endl;
+            return;
+        }
+        std::string line1, line2;
+        int collisionCount = 0;
+        while (std::getline(f, line1) && std::getline(f, line2)) {
+            if (SlaSimHash(line1) == SlaSimHash(line2)) {
+                std::cout << "Collision detected in " << file << ":\n" << line1 << "\n" << line2 << "\n";
+                collisionCount++;
+            }
+        }
+        std::cout << "Total collisions found in " << file << ": " << collisionCount << "\n";
+        f.close();
+    }
 }
 
 int main() {
     std::string a;
-    std::cout<<"Sveiki. Pasirinkite ivesties buda:\n1. Ivesti is failo\n2. Ivesti per konsole\n3. Testavimas\n4. Baigti darba\n";
+    std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Exit\n";
     int pasirinkimas=0;
     std::cin>>pasirinkimas;
-    while (pasirinkimas != 4){
+    while (pasirinkimas != 5){
         if (pasirinkimas == 1) {
-            std::cout << "Iveskite failo pavadinima: ";
+            std::cout << "Enter file name: ";
             std::string filename;
             std::cin >> filename;
             std::ifstream file("./tests/"+filename);
             if (!file) {
-                std::cerr << "Klaida atidarant faila!" << std::endl;
+                std::cerr << "Error opening file!" << std::endl;
                 return 1;
             }
             base_input(file, a);
             file.close();
         } else if (pasirinkimas == 2) {
-            std::cout << "Iveskite teksta: ";
+            std::cout << "Enter text: ";
             std::cin.ignore();
             base_input(std::cin, a);
         } else if (pasirinkimas == 3) {
             std::ifstream file("./tests/konstitucija.txt");
             test_input(file);
+        }
+        else if (pasirinkimas == 4) {
+            collision_input();
         } else {
-            std::cerr << "Neteisingas pasirinkimas!" << std::endl;
+            std::cerr << "Invalid selection!" << std::endl;
             return 1;
         }
         std::cout<<SlaSimHash(a)<<std::endl;
-        std::cout<<"Sveiki. Pasirinkite ivesties buda:\n1. Ivesti is failo\n2. Ivesti per konsole\n3. Testavimas\n4. Baigti darba\n";
+        std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Exit\n";
         std::cin>>pasirinkimas;
     }
     return 0;
