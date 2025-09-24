@@ -128,7 +128,7 @@ void test_input(std::istream& in) {
     std::cout << "Full file. Time: " << average / 50     << " ns\n";
 }
 
-void collision_input() {
+void collision_test() {
     std::string files[4]={"pairs10.txt", "pairs100.txt", "pairs500.txt", "pairs1000.txt"};
     for (auto & file : files) {
         std::ifstream f("./tests/" + file);
@@ -149,12 +149,41 @@ void collision_input() {
     }
 }
 
+void avalanche_test() {
+    std::ifstream f("./input_files/avalanche/pairs.txt");
+    if (!f) {
+        std::cerr << "Error opening file!" << std::endl;
+        return;
+    }
+    std::string line1, line2;
+    double maxDiff = 0, minDiff = 1, avgDiff = 0;
+    while (std::getline(f, line1) && std::getline(f, line2)) {
+        std::string hash1 = SlaSimHash(line1);
+        std::string hash2 = SlaSimHash(line2);
+        double diffCount = 0;
+        for (size_t i = 0; i < hash1.size(); i++) {
+            if (hash1[i] != hash2[i]) {
+                diffCount++;
+            }
+        }
+        std::cout << "Hash difference: " << diffCount/64.0 << "\n";
+        maxDiff = std::max(maxDiff, diffCount/64.0);
+        minDiff = std::min(minDiff, diffCount/64.0);
+        avgDiff += diffCount/64.0;
+    }
+    std::cout << "Max difference: " << maxDiff << "\n";
+    std::cout << "Min difference: " << minDiff << "\n";
+    std::cout << "Average difference: " << (avgDiff / 100000) << "\n";
+
+    f.close();
+}
+
 int main() {
     std::string a;
-    std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Generate string pairs\n6. Exit\n";
+    std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Avalanche testing\n6. Generate string pairs\n7. Exit\n";
     int choice=0;
     std::cin>>choice;
-    while (choice != 6){
+    while (choice != 7){
         if (choice == 1) {
             std::cout << "Enter file name: ";
             std::string filename;
@@ -175,8 +204,10 @@ int main() {
             test_input(file);
         }
         else if (choice == 4) {
-            collision_input();
+            collision_test();
         } else if (choice == 5) {
+            avalanche_test();
+        } else if (choice == 6) {
             std::cout << "Generating 100,000 string pairs of length 10...\n";
             helpers::generate_string_pairs(100000, 10);
             std::cout << "String pairs generated in input_files/avalanche/pairs.txt\n";
@@ -185,7 +216,7 @@ int main() {
             return 1;
         }
         std::cout<<SlaSimHash(a)<<std::endl;
-        std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Generate string pairs\n6. Exit\n";
+        std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Avalanche testing\n6. Generate string pairs\n7. Exit\n";
         std::cin>>choice;
     }
     return 0;
