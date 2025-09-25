@@ -55,3 +55,8 @@
     - Min similarity (bin): 25%
     - Average similarity (bin): 52.4543%
 
+### Salted string demonstration
+    Input: I bought pizza for 10,000 bitcoin!
+    Generated salt: t658u66Hqz
+    Hash without salt: d9c1c590c469dfb54e53f04ae3fd9535b8697dbcb8697dbcc31dde33e23b1367
+    Hash with salt: d360055b69dcd0a3d360055bc1372c3084d87755cf4f8a38d360055be74a72a4
