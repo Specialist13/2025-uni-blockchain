@@ -60,3 +60,13 @@
     Generated salt: t658u66Hqz
     Hash without salt: d9c1c590c469dfb54e53f04ae3fd9535b8697dbcb8697dbcc31dde33e23b1367
     Hash with salt: d360055b69dcd0a3d360055bc1372c3084d87755cf4f8a38d360055be74a72a4
+
+## Conclusion
+
+### Strengths
+- Avoids collisions
+- Achieves the avalanche effect
+
+### Weaknesses
+- Not as time efficient
+- Uses smaller numbers in calculations (`2^32, 2^8`) which could allow for more specific guesses and make dehashing easier.
