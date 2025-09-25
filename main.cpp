@@ -8,6 +8,7 @@
 #include <chrono>
 #include <iomanip>
 #include "helpers/string_pair_generator.h"
+#include "helpers/random_string_generator.h"
 
 std::string SlaSimHash(std::string& input) {
     if (input.empty()) {
@@ -195,12 +196,24 @@ void avalanche_test() {
     f.close();
 }
 
+void salt_test() {
+    std::string input;
+    std::cout << "Enter text: ";
+    std::cin.ignore();
+    std::getline(std::cin, input);
+    std::string salt = helpers::generateSalt(10);
+    std::cout << "Input: " << input << "\n" << "Generated salt: " << salt << "\n";
+    std::cout << "Hash without salt: " << SlaSimHash(input) << "\n";
+    std::string saltedInput = input + salt;
+    std::cout << "Hash with salt: " << SlaSimHash(saltedInput) << "\n";
+}
+
 int main() {
     std::string a;
-    std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Avalanche testing\n6. Generate string pairs\n7. Exit\n";
+    std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Avalanche testing\n6. Generate string pairs\n7. Salt test\n8. Exit\n";
     int choice=0;
     std::cin>>choice;
-    while (choice != 7){
+    while (choice != 8){
         if (choice == 1) {
             std::cout << "Enter file name: ";
             std::string filename;
@@ -230,12 +243,14 @@ int main() {
             std::cout << "Generating 100,000 string pairs of length 10...\n";
             helpers::generate_string_pairs(100000, 10);
             std::cout << "String pairs generated in input_files/avalanche/pairs.txt\n";
+        } else if (choice == 7) {
+            salt_test();
         } else {
             std::cerr << "Invalid selection!" << std::endl;
             return 1;
         }
         
-        std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Avalanche testing\n6. Generate string pairs\n7. Exit\n";
+        std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Avalanche testing\n6. Generate string pairs\n7. Salt test\n8. Exit\n";
         std::cin>>choice;
     }
     return 0;
