@@ -152,7 +152,8 @@ void avalanche_test() {
         return;
     }
     std::string line1, line2;
-    double maxSim = 0, minSim = 1, avgSim = 0;
+    double maxSimHex = 0, minSimHex = 1, avgSimHex = 0;
+    double maxSimBin = 0, minSimBin = 1, avgSimBin = 0;
     while (std::getline(f, line1) && std::getline(f, line2)) {
         //std::cout << "Comparing:\n" << line1 << "\n" << line2 << "\n";
         std::string hash1 = SlaSimHash(line1);
@@ -163,14 +164,33 @@ void avalanche_test() {
                 simCount++;
             }
         }
-        //std::cout << "Hash similarity: " << simCount/64.0 << "\n";
-        maxSim = std::max(maxSim, simCount/64.0);
-        minSim = std::min(minSim, simCount/64.0);
-        avgSim += simCount/64.0;
+        maxSimHex = std::max(maxSimHex, simCount/64.0);
+        minSimHex = std::min(minSimHex, simCount/64.0);
+        avgSimHex += simCount/64.0;
+
+        std::string bin1, bin2;
+        for (char c : hash1) {
+            bin1 += std::bitset<4>(std::stoi(std::string(1, c), nullptr, 16)).to_string();
+        }
+        for (char c : hash2) {
+            bin2 += std::bitset<4>(std::stoi(std::string(1, c), nullptr, 16)).to_string();
+        }
+        for (size_t i = 0; i < bin1.size(); i++) {
+            if (bin1[i] == bin2[i]) {
+                simCount++;
+            }
+        }
+        maxSimBin = std::max(maxSimBin, simCount/256.0);
+        minSimBin = std::min(minSimBin, simCount/256.0);
+        avgSimBin += simCount/256.0;
     }
-    std::cout << "Max similarity: " << maxSim << "\n";
-    std::cout << "Min similarity: " << minSim << "\n";
-    std::cout << "Average similarity: " << (avgSim / 100000) << "\n";
+    std::cout << "Max similarity (hex): " << maxSimHex*100 << "%\n";
+    std::cout << "Min similarity (hex): " << minSimHex*100 << "%\n";
+    std::cout << "Average similarity (hex): " << (avgSimHex / 100000)*100 << "%\n";
+
+    std::cout << "Max similarity (bin): " << maxSimBin*100 << "%\n";
+    std::cout << "Min similarity (bin): " << minSimBin*100 << "%\n";
+    std::cout << "Average similarity (bin): " << (avgSimBin / 100000)*100 << "%\n";
 
     f.close();
 }
@@ -192,10 +212,12 @@ int main() {
             }
             base_input(file, a);
             file.close();
+            std::cout<<"String: "<<a<<" Hash: "<<SlaSimHash(a)<<std::endl;
         } else if (choice == 2) {
             std::cout << "Enter text: ";
             std::cin.ignore();
             base_input(std::cin, a);
+            std::cout<<"String: "<<a<<" Hash: "<<SlaSimHash(a)<<std::endl;
         } else if (choice == 3) {
             std::ifstream file("./tests/konstitucija.txt");
             test_input(file);
@@ -212,7 +234,7 @@ int main() {
             std::cerr << "Invalid selection!" << std::endl;
             return 1;
         }
-        std::cout<<"String: "<<a<<" Hash: "<<SlaSimHash(a)<<std::endl;
+        
         std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Avalanche testing\n6. Generate string pairs\n7. Exit\n";
         std::cin>>choice;
     }
