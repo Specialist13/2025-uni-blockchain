@@ -6,6 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <chrono>
+#include <iomanip>
 #include "helpers/string_pair_generator.h"
 
 std::string SlaSimHash(std::string& input) {
@@ -34,22 +35,23 @@ std::string SlaSimHash(std::string& input) {
         }
     }
 
-    long long average = 0;
+    long long total = 0;
     for (int n : numbers) {
-        average += n;
+        total += n;
     }
-    average /= numbers.size();
 
     
 
     std::vector<int> xor_results={binary[0], binary[1], binary[2], binary[3]};
+    std::vector<int> temp;
     for (int i = 4; i < binary.size(); i++) {
-        std::vector<int> temp;
-        for (int j = 0; j < xor_results.size(); j++) {
-            temp.push_back(xor_results[j] ^ binary[i]);
+        temp.push_back(xor_results[i%4] ^ binary[i]);
+        if (i%4==3){
+            xor_results = temp;
+            temp.clear();
         }
-        xor_results = temp;
     }
+    
 
     long long xor_numerical_value = 0;
     for (int i = 0; i < xor_results.size(); i++) {
@@ -58,11 +60,9 @@ std::string SlaSimHash(std::string& input) {
 
     long long offset = 1;
     for (int i = 0; i < xor_numerical_value; i++) {
-        offset *= average;
-        offset %= (1LL << 32);
+        offset *= total;
+        offset %= (1LL << 8);
     }
-
-    offset = log2(offset);
 
     for (int i = 0; i < 8; i++) {
         int zero_count = 0;
@@ -77,16 +77,15 @@ std::string SlaSimHash(std::string& input) {
         }
 
         long long partial_numerical_hash=1;
+        //std::cout<<zero_count<<" "<<one_count<<" "<<average<<" "<<offset<<"\n";
         for (int j = 0; j < one_count+offset + 10; j++) {
-            partial_numerical_hash *= (zero_count + average + 10 + partial_numerical_hash%10);
+            partial_numerical_hash *= (zero_count + total + 10 + partial_numerical_hash%10);
             partial_numerical_hash % (1LL << 32) == 0 ? partial_numerical_hash -= 1 : partial_numerical_hash;
             partial_numerical_hash %= (1LL << 32);
         }
 
-        
-
         std::stringstream ss;
-        ss << std::hex << partial_numerical_hash;
+        ss << std::hex << std::setw(8) << std::setfill('0') << partial_numerical_hash;
         output += ss.str();
     }
 
@@ -156,24 +155,25 @@ void avalanche_test() {
         return;
     }
     std::string line1, line2;
-    double maxDiff = 0, minDiff = 1, avgDiff = 0;
+    double maxSim = 0, minSim = 1, avgSim = 0;
     while (std::getline(f, line1) && std::getline(f, line2)) {
+        //std::cout << "Comparing:\n" << line1 << "\n" << line2 << "\n";
         std::string hash1 = SlaSimHash(line1);
         std::string hash2 = SlaSimHash(line2);
-        double diffCount = 0;
+        double simCount = 0;
         for (size_t i = 0; i < hash1.size(); i++) {
-            if (hash1[i] != hash2[i]) {
-                diffCount++;
+            if (hash1[i] == hash2[i]) {
+                simCount++;
             }
         }
-        std::cout << "Hash difference: " << diffCount/64.0 << "\n";
-        maxDiff = std::max(maxDiff, diffCount/64.0);
-        minDiff = std::min(minDiff, diffCount/64.0);
-        avgDiff += diffCount/64.0;
+        //std::cout << "Hash similarity: " << simCount/64.0 << "\n";
+        maxSim = std::max(maxSim, simCount/64.0);
+        minSim = std::min(minSim, simCount/64.0);
+        avgSim += simCount/64.0;
     }
-    std::cout << "Max difference: " << maxDiff << "\n";
-    std::cout << "Min difference: " << minDiff << "\n";
-    std::cout << "Average difference: " << (avgDiff / 100000) << "\n";
+    std::cout << "Max similarity: " << maxSim << "\n";
+    std::cout << "Min similarity: " << minSim << "\n";
+    std::cout << "Average similarity: " << (avgSim / 100000) << "\n";
 
     f.close();
 }
@@ -215,7 +215,7 @@ int main() {
             std::cerr << "Invalid selection!" << std::endl;
             return 1;
         }
-        std::cout<<SlaSimHash(a)<<std::endl;
+        std::cout<<"String: "<<a<<" Hash: "<<SlaSimHash(a)<<std::endl;
         std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Avalanche testing\n6. Generate string pairs\n7. Exit\n";
         std::cin>>choice;
     }
