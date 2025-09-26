@@ -7,6 +7,7 @@
 #include <fstream>
 #include <chrono>
 #include <iomanip>
+#include <cstdint>
 #include "helpers/string_pair_generator.h"
 #include "helpers/random_string_generator.h"
 
@@ -90,11 +91,112 @@ std::string SlaSimHash(std::string& input) {
     return output;
 }
 
+// Rotate helpers
+static inline uint32_t rotl32(uint32_t x, int r) {
+    return (x << r) | (x >> (32 - r));
+}
+static inline uint64_t rotl64(uint64_t x, int r) {
+    return (x << r) | (x >> (64 - r));
+}
+
+std::string AIImprovedSlaSimHash(std::string& input) {
+    if (input.empty()) {
+        return "";
+    }
+
+    std::vector<int> binary;
+    binary.reserve(input.size() * 8);
+
+    // Convert input to binary (fast)
+    for (unsigned char c : input) {
+        for (int i = 7; i >= 0; --i) {
+            binary.push_back((c >> i) & 1);
+        }
+    }
+
+    // Stage 1: derive per-byte numbers with stronger mixing
+    std::vector<uint32_t> numbers;
+    numbers.reserve(input.size());
+
+    for (size_t i = 0; i < input.size(); i++) {
+        uint32_t val = 0;
+        for (int b = 0; b < 8; b++) {
+            val |= (binary[i * 8 + b] << (7 - b));
+        }
+        // multiply by position and add rotation for diffusion
+        uint32_t mixed = rotl32(val * (i + 1), (i % 7) + 1) ^ (0x9E3779B9u * (i + 1));
+        numbers.push_back(mixed);
+    }
+
+    // Stage 2: accumulate total (64-bit to avoid overflow)
+    uint64_t total = 0;
+    for (uint32_t n : numbers) {
+        total += n;
+        total = rotl64(total, 3) ^ 0xA5A5A5A5A5A5A5A5ULL; // avalanche each step
+    }
+
+    // Stage 3: XOR chain (expanded to 8-way instead of 4-way)
+    std::vector<int> xor_results(binary.begin(), binary.begin() + 8);
+    std::vector<int> temp;
+    for (size_t i = 8; i < binary.size(); i++) {
+        temp.push_back(xor_results[i % 8] ^ binary[i]);
+        if (i % 8 == 7) {
+            xor_results = temp;
+            temp.clear();
+        }
+    }
+
+    // Collapse xor_results into a number
+    uint32_t xor_numerical_value = 0;
+    for (size_t i = 0; i < xor_results.size(); i++) {
+        xor_numerical_value |= (xor_results[i] << (xor_results.size() - 1 - i));
+    }
+
+    // Stage 4: offset (use LCG-style iteration to avoid huge multiplications)
+    uint64_t offset = 0xDEADBEEF;
+    for (uint32_t i = 0; i < xor_numerical_value; i++) {
+        offset = offset * 6364136223846793005ULL + (total ^ (i * 0x9E37));
+        offset &= 0xFF; // keep in [0,255] like original idea
+    }
+
+    // Stage 5: construct 8 blocks (32-bit each → 256-bit total)
+    std::string output;
+    output.reserve(64); // hex length
+
+    for (int block = 0; block < 8; block++) {
+        int zero_count = 0;
+        int one_count = 0;
+
+        size_t start = input.size() * block;
+        size_t end = std::min(start + input.size(), binary.size());
+
+        for (size_t j = start; j < end; j++) {
+            if (binary[j] == 0) zero_count++;
+            else one_count++;
+        }
+
+        uint64_t partial = (uint64_t)zero_count ^ (total >> (block * 3));
+        partial = rotl64(partial + one_count + offset + block * 0x12345, (block + 5));
+
+        // Run controlled multiplicative loop (shorter, non-quadratic)
+        for (int k = 0; k < (one_count % 16) + 4; k++) {
+            partial = (partial * (0x9E3779B97F4A7C15ULL ^ (partial >> 7))) & 0xFFFFFFFFULL;
+            partial ^= rotl64(total, k + block) & 0xFFFFFFFFULL;
+        }
+
+        std::stringstream ss;
+        ss << std::hex << std::setw(8) << std::setfill('0') << (uint32_t)partial;
+        output += ss.str();
+    }
+
+    return output;
+}
+
 void base_input(std::istream& in, std::string& a) {
     std::getline(in, a);
 }
 
-void test_input(std::istream& in) {
+void test_input(std::istream& in, std::string (*hashFunc)(std::string&)) {
     std::string input{};
     std::string line{};
     int lineCount{0};
@@ -107,7 +209,7 @@ void test_input(std::istream& in) {
             for (int i = 0; i < 50; i++){
                 using Clock = std::chrono::high_resolution_clock;
                 auto start = Clock::now();
-                SlaSimHash(input);
+                hashFunc(input);
                 auto end = Clock::now();
                 average += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
             }
@@ -118,14 +220,14 @@ void test_input(std::istream& in) {
     for (int i = 0; i < 50; i++){
         using Clock = std::chrono::high_resolution_clock;
         auto start = Clock::now();
-        SlaSimHash(input);
+        hashFunc(input);
         auto end = Clock::now();
         average += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
     }
     std::cout << "Full file. Time: " << average / 50     << " ns\n";
 }
 
-void collision_test() {
+void collision_test(std::string (*hashFunc)(std::string&)) {
     std::string files[4]={"pairs10.txt", "pairs100.txt", "pairs500.txt", "pairs1000.txt"};
     for (auto & file : files) {
         std::ifstream f("./tests/" + file);
@@ -136,7 +238,7 @@ void collision_test() {
         std::string line1, line2;
         int collisionCount = 0;
         while (std::getline(f, line1) && std::getline(f, line2)) {
-            if (SlaSimHash(line1) == SlaSimHash(line2)) {
+            if (hashFunc(line1) == hashFunc(line2)) {
                 std::cout << "Collision detected in " << file << ":\n" << line1 << "\n" << line2 << "\n";
                 collisionCount++;
             }
@@ -146,7 +248,7 @@ void collision_test() {
     }
 }
 
-void avalanche_test() {
+void avalanche_test(std::string (*hashFunc)(std::string&)) {
     std::ifstream f("./input_files/avalanche/pairs.txt");
     if (!f) {
         std::cerr << "Error opening file!" << std::endl;
@@ -157,8 +259,8 @@ void avalanche_test() {
     double maxSimBin = 0, minSimBin = 1, avgSimBin = 0;
     while (std::getline(f, line1) && std::getline(f, line2)) {
         //std::cout << "Comparing:\n" << line1 << "\n" << line2 << "\n";
-        std::string hash1 = SlaSimHash(line1);
-        std::string hash2 = SlaSimHash(line2);
+        std::string hash1 = hashFunc(line1);
+        std::string hash2 = hashFunc(line2);
         double simCount = 0;
         for (size_t i = 0; i < hash1.size(); i++) {
             if (hash1[i] == hash2[i]) {
@@ -210,7 +312,21 @@ void salt_test() {
 
 int main() {
     std::string a;
-    std::cout<<"Hello. Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Avalanche testing\n6. Generate string pairs\n7. Salt test\n8. Exit\n";
+    std::cout<<"Hello. Choose function:\n1. SlaSimHash\n2. AIImprovedSlaSimHash\n";
+    int funcChoice=0;
+    std::cin>>funcChoice;
+    
+    // Define function pointer based on user choice
+    std::string (*selectedHashFunc)(std::string&);
+    if (funcChoice == 2) {
+        std::cout << "Using AIImprovedSlaSimHash function.\n";
+        selectedHashFunc = AIImprovedSlaSimHash;
+    } else {
+        std::cout << "Using original SlaSimHash function.\n";
+        selectedHashFunc = SlaSimHash;
+    }
+    
+    std::cout<<"Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Avalanche testing\n6. Generate string pairs\n7. Salt test\n8. Exit\n";
     int choice=0;
     std::cin>>choice;
     while (choice != 8){
@@ -225,20 +341,20 @@ int main() {
             }
             base_input(file, a);
             file.close();
-            std::cout<<"String: "<<a<<" Hash: "<<SlaSimHash(a)<<std::endl;
+            std::cout<<"String: "<<a<<" Hash: "<<selectedHashFunc(a)<<std::endl;
         } else if (choice == 2) {
             std::cout << "Enter text: ";
             std::cin.ignore();
             base_input(std::cin, a);
-            std::cout<<"String: "<<a<<" Hash: "<<SlaSimHash(a)<<std::endl;
+            std::cout<<"String: "<<a<<" Hash: "<<selectedHashFunc(a)<<std::endl;
         } else if (choice == 3) {
             std::ifstream file("./tests/konstitucija.txt");
-            test_input(file);
+            test_input(file, selectedHashFunc);
         }
         else if (choice == 4) {
-            collision_test();
+            collision_test(selectedHashFunc);
         } else if (choice == 5) {
-            avalanche_test();
+            avalanche_test(selectedHashFunc);
         } else if (choice == 6) {
             std::cout << "Generating 100,000 string pairs of length 10...\n";
             helpers::generate_string_pairs(100000, 10);
