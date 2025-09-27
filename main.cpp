@@ -10,6 +10,7 @@
 #include <cstdint>
 #include "helpers/string_pair_generator.h"
 #include "helpers/random_string_generator.h"
+#include "helpers/crypto_hasher.h"
 
 std::string SlaSimHash(std::string& input) {
     if (input.empty()) {
@@ -312,18 +313,36 @@ void salt_test() {
 
 int main() {
     std::string a;
-    std::cout<<"Hello. Choose function:\n1. SlaSimHash\n2. AIImprovedSlaSimHash\n";
+    std::cout<<"Hello. Choose function:\n1. SlaSimHash\n2. AIImprovedSlaSimHash\n3. MD5\n4. SHA-1\n5. SHA-256\n";
     int funcChoice=0;
     std::cin>>funcChoice;
     
     // Define function pointer based on user choice
     std::string (*selectedHashFunc)(std::string&);
-    if (funcChoice == 2) {
-        std::cout << "Using AIImprovedSlaSimHash function.\n";
-        selectedHashFunc = AIImprovedSlaSimHash;
-    } else {
-        std::cout << "Using original SlaSimHash function.\n";
-        selectedHashFunc = SlaSimHash;
+    switch (funcChoice) {
+        case 1:
+            std::cout << "Using SlaSimHash function.\n";
+            selectedHashFunc = SlaSimHash;
+            break;
+        case 2:
+            std::cout << "Using AIImprovedSlaSimHash function.\n";
+            selectedHashFunc = AIImprovedSlaSimHash;
+            break;
+        case 3:
+            std::cout << "Using MD5 hash function.\n";
+            selectedHashFunc = crypto::md5Hash;
+            break;
+        case 4:
+            std::cout << "Using SHA-1 hash function.\n";
+            selectedHashFunc = crypto::sha1Hash;
+            break;
+        case 5:
+            std::cout << "Using SHA-256 hash function.\n";
+            selectedHashFunc = crypto::sha256Hash;
+            break;
+        default:
+            std::cerr << "Invalid selection!" << std::endl;
+            break;
     }
     
     std::cout<<"Choose mode:\n1. Input from file\n2. Input from console\n3. Time testing\n4. Collision testing\n5. Avalanche testing\n6. Generate string pairs\n7. Salt test\n8. Exit\n";
