@@ -93,3 +93,14 @@
     - Min similarity (bin): 37.1094%
     - Average similarity (bin): 52.352%
 - These are similar results as the original function, with the averages staying the same.
+
+### Salted string demonstration
+    Input: I bought pizza for 10,000 bitcoin!
+    Generated salt: 7FumfFcrCQ
+    Hash without salt: d9c1c590c469dfb54e53f04ae3fd9535b8697dbcb8697dbcc31dde33e23b1367
+    Hash with salt: f6ae61c67a407160f6ae61c67e2f1983f401e35afe0ac3ddb651702c6ebc86f9
+
+## Conclusion
+
+- The AI improved algorithm yields same results as the original, whith slighly smaller computing duration.
+- AI tried to improve the avalanche effect of the algorithm as well, but did not achieve better similarity results. However, they did eliminate the posibility for calculated guesses because of higher mixing (which could have been a problem in the original).
