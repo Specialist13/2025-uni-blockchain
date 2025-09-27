@@ -70,3 +70,26 @@
 ### Weaknesses
 - Not as time efficient
 - Uses smaller numbers in calculations (`2^32, 2^8`) which could allow for more specific guesses and make dehashing easier.
+
+---
+
+# AI improved algorithm
+
+## Testing
+
+### Time testing
+- The test conducted with file `konstitucija.txt` concluded, that increasing the input does not significantly effect the runtime of the hashing algorithm. The complexity seems to be O(`n log(n)`). It is slightly faster than the original.
+<img width="886" height="523" alt="image" src="https://github.com/user-attachments/assets/81d262ad-881d-4e22-be2b-d6d02e0c4d7b" />
+
+### Collision testing
+- Tests with 100k pairs of strings length 10, 100, 500 and 1000 all did not yield any collisions. Same as the original.
+
+### Avalanche testing
+- Tests with 100k pairs of strings length 10 yielded such results for hashes:
+    - Max similarity (hex): 23.4375%
+    - Min similarity (hex): 0%
+    - Average similarity (hex): 6.74216%
+    - Max similarity (bin): 68.3594%
+    - Min similarity (bin): 37.1094%
+    - Average similarity (bin): 52.352%
+- These are similar results as the original function, with the averages staying the same.
