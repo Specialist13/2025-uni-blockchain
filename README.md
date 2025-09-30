@@ -1,6 +1,6 @@
 # SlaSimHash
 
-## Psuedocode
+## Pseudocode
 
 ### 1. Convert Input String to Bits
 - Turn each character of the input string into its binary representation.
