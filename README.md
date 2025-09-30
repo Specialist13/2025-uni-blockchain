@@ -104,3 +104,26 @@
 
 - The AI improved algorithm yields same results as the original, whith slighly smaller computing duration.
 - AI tried to improve the avalanche effect of the algorithm as well, but did not achieve better similarity results. However, they did eliminate the posibility for calculated guesses because of higher mixing (which could have been a problem in the original).
+
+---
+
+# Comparison (MD5/SHA-1/SHA-256)
+
+### Time testing
+
+- The new algorithms have a constant time whereas our algorithms do not. This makes them significantly faster than ours for larger inputs.
+<img width="1333" height="882" alt="image" src="https://github.com/user-attachments/assets/e87df2a6-bdd1-4d75-a06b-761b88a709ae" />
+
+### Collision testing
+- Tests with 100k pairs of strings length 10, 100, 500 and 1000 all did not yield any collisions.
+
+### Avalanche testing
+- Tests with 100k pairs of strings length 10 yielded such results for hashes:
+<img width="1328" height="896" alt="image" src="https://github.com/user-attachments/assets/849c7ebe-de0f-43ae-90ad-21428fa1eedb" />
+- The most important metric (average similarity) of our algorithms and SHA-256 is identical, however MD5 and SHA-1 achieved smaller similarity, but that does not necessarily mean better hashing.
+
+## Conclusion
+
+- The only major disadvantage of our algorithms that tests detected was time complexity which becomes problematic with larger input.
+- Other metrics seem similar across all algorithms.
+- Our tests could not detect such aspects as difficulty to decrypt the hash, but it is likely that our hashes are much less safe.
