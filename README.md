@@ -127,3 +127,27 @@
 - The only major disadvantage of our algorithms that tests detected was time complexity which becomes problematic with larger input.
 - Other metrics seem similar across all algorithms.
 - Our tests could not detect such aspects as difficulty to decrypt the hash, but it is likely that our hashes are much less safe.
+
+---
+
+# Comparison with colleagues
+
+### Time testing
+- The slowest hashes were PatrickHash and MonikaHash, whereas the fastest was NikitaHash.
+<img width="1329" height="666" alt="image" src="https://github.com/user-attachments/assets/9dfb2f6c-5e9d-42c9-a61d-90ae044ede3f" />
+
+### Collision testing
+
+- NikitaHash had 4 collisions, PatrickHash had 15 collisions, the rest were zero.
+
+### Avalanche testing
+
+- All hashes achieved similar similarity ratings except MonikaHash, which was much more similar.
+<img width="1330" height="557" alt="image" src="https://github.com/user-attachments/assets/be5c4f0a-7cd7-4174-a885-30666cf84efb" />
+
+## Conclusion
+
+- NikitaHash and PatrickHash are not really reliable because of multiple collisions.
+- MonikaHash had an unreliable avalanche effect.
+- Overall, the best hash in terms of time, collisions and avalanche effect was MatrixHash (Arnas Matuolis and Justinas Letukas).
+- Our tests could not determine the safety and complexity of these hashes.
